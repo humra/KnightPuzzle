@@ -65,6 +65,8 @@ public class LevelCreator : MonoBehaviour
 
     private void _generatePlayingGrid()
     {
+        int cointCounter = 0;
+
         for(int i = 0; i < _playingField.GetLength(0); i++)
         {
             for(int j = 0; j < _playingField.GetLength(1); j++)
@@ -81,10 +83,13 @@ public class LevelCreator : MonoBehaviour
                 switch(_playingField[i, j])
                 {
                     case 'K':
+                    case 'k':
                         Instantiate(_knightPrefab, new Vector3(i, 0, j), Quaternion.identity);
                         break;
                     case 'C':
+                    case 'c':
                         Instantiate(_coinPrefab, new Vector3(i, 0, j), Quaternion.identity);
+                        cointCounter++;
                         break;
                     case '#':
                         Instantiate(_wallPrefab, new Vector3(i, 0, j), Quaternion.identity);
@@ -94,5 +99,7 @@ public class LevelCreator : MonoBehaviour
                 }
             }
         }
+
+        FindObjectOfType<GameManager>().PlayingField = _playingField;
     }
 }
