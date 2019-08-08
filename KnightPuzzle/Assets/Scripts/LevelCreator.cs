@@ -1,10 +1,9 @@
 ﻿using System;
+using UnityEditor;
 using UnityEngine;
 
 public class LevelCreator : MonoBehaviour
-{
-    [SerializeField]
-    private TextAsset _levelFile;
+{ 
     [SerializeField]
     private GameObject _whiteBlockPrefab;
     [SerializeField]
@@ -16,18 +15,38 @@ public class LevelCreator : MonoBehaviour
     [SerializeField]
     private GameObject _wallPrefab;
 
+    private TextAsset _levelFile;
     private char[,] _playingField;
 
     private void Start()
     {
+        _levelFile = Resources.Load<TextAsset>("TextFiles/Level");
+
         if(_verifyPlayingGrid())
         {
             _generatePlayingGrid();
         }
     }
 
+    public void RecreateGrid()
+    {
+        AssetDatabase.ImportAsset("Assets/Resources/TextFiles/Level.txt");
+        _levelFile = Resources.Load<TextAsset>("TextFiles/Level");
+        if (_verifyPlayingGrid())
+        {
+            _clearExistingGrid();
+            _generatePlayingGrid();
+        }
+    }
+
     private bool _verifyPlayingGrid()
     {
+        if(_levelFile == null)
+        {
+            Debug.LogError("No level file!");
+            return false;
+        }
+
         string readFile = _levelFile.text;
         string[] stringSeparators = new string[] { "\r\n" };
         string[] rows = readFile.Split(stringSeparators, StringSplitOptions.None);
@@ -65,8 +84,6 @@ public class LevelCreator : MonoBehaviour
 
     private void _generatePlayingGrid()
     {
-        int cointCounter = 0;
-
         for(int i = 0; i < _playingField.GetLength(0); i++)
         {
             for(int j = 0; j < _playingField.GetLength(1); j++)
@@ -84,12 +101,13 @@ public class LevelCreator : MonoBehaviour
                 {
                     case 'K':
                     case 'k':
-                        Instantiate(_knightPrefab, new Vector3(i, 0, j), Quaternion.identity);
+                        GameObject temp = Instantiate(_knightPrefab, new Vector3(i, 0, j), Quaternion.identity);
+                        FindObjectOfType<GameManager>().PlayerPosition = temp.transform;
                         break;
                     case 'C':
                     case 'c':
-                        Instantiate(_coinPrefab, new Vector3(i, 0, j), Quaternion.identity);
-                        cointCounter++;
+                        GameObject tempCoin = Instantiate(_coinPrefab, new Vector3(i, 0, j), Quaternion.identity);
+                        FindObjectOfType<GameManager>().Coins.Add(tempCoin);
                         break;
                     case '#':
                         Instantiate(_wallPrefab, new Vector3(i, 0, j), Quaternion.identity);
@@ -101,5 +119,27 @@ public class LevelCreator : MonoBehaviour
         }
 
         FindObjectOfType<GameManager>().PlayingField = _playingField;
+    }
+
+    private void _clearExistingGrid()
+    {
+        GameObject[] walls = GameObject.FindGameObjectsWithTag("Wall");
+        GameObject[] blocks = GameObject.FindGameObjectsWithTag("Block");
+
+        foreach(GameObject destroyable in walls)
+        {
+            GameObject.Destroy(destroyable);
+        }
+        foreach (GameObject destroyable in blocks)
+        {
+            GameObject.Destroy(destroyable);
+        }
+
+        Destroy(GameObject.FindGameObjectWithTag("Player"));
+        foreach(GameObject coin in FindObjectOfType<GameManager>().Coins)
+        {
+            FindObjectOfType<GameManager>().Coins.Remove(coin);
+            GameObject.Destroy(coin);
+        }
     }
 }

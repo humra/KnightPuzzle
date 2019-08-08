@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -7,20 +8,32 @@ public class GameManager : MonoBehaviour
     public Transform PlayerPosition;
     public List<GameObject> Coins;
 
-    private void Start()
-    {
-        PlayerPosition = GameObject.FindGameObjectWithTag("Player").transform;
-        Coins = new List<GameObject>(GameObject.FindGameObjectsWithTag("Coin"));
+    private LevelCreator _levelCreator;
+    private FileSystemWatcher _watcher = new FileSystemWatcher();
 
-        if(Coins.Count <= 0)
-        {
-            Debug.LogError("No coins in the playing field");
-        }
+    private static bool _fileChanged = false;
+
+    private void Start()
+    { 
+        _levelCreator = GetComponent<LevelCreator>();
+
+        _watcher.Path = Application.dataPath + "/Resources/TextFiles/";
+        _watcher.Filter = "*.txt";
+        _watcher.Changed += _levelFileChanged;
+        _watcher.EnableRaisingEvents = true;
     }
 
     private void Update()
     {
-        if(Input.GetMouseButtonDown(0))
+        if(_fileChanged)
+        {
+            PlayerPosition = null;
+            _levelCreator.RecreateGrid();
+            _fileChanged = false;
+            return;
+        }
+
+        if (Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -105,5 +118,11 @@ public class GameManager : MonoBehaviour
             //Win
             Debug.Log("Win");
         }
+    }
+
+    private static void _levelFileChanged(object source, FileSystemEventArgs e)
+    {
+        Debug.Log("Changed");
+        _fileChanged = true;
     }
 }

@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 6088689437496032103}
   - component: {fileID: 5587515873723174706}
   m_Layer: 0
-  m_Name: BlackSpot
-  m_TagString: Untagged
+  m_Name: BlackBlock
+  m_TagString: Block
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
